@@ -12,42 +12,29 @@ const LoginPage = () => {
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
-        e.preventDefault();
-        setError(''); // Καθαρισμός προηγούμενων λαθών
+        e.preventDefault(); // ΚΡΑΤΑΕΙ ΤΗ ΣΕΛΙΔΑ - Μην το ξεχάσεις!
+        setError('');
 
         try {
-            // Κλήση στο Spring Boot API (Προσοχή στο URL και το Port)
             const response = await axios.post('http://localhost:8080/api/auth/login', {
                 username: username,
                 password: password
             });
 
-            // Αν η σύνδεση είναι επιτυχής, το Backend επιστρέφει το User αντικείμενο
-            const user = response.data;
+            console.log("Login Success:", response.data); // Δες αν έρχονται τα δεδομένα στο Console
 
-            // Αποθήκευση στοιχείων στο LocalStorage για να τα έχουμε στο Dashboard
-            localStorage.setItem('userRole', user.role);
-            localStorage.setItem('username', user.username);
+            // Αποθήκευση στοιχείων
+            localStorage.setItem('username', response.data.username);
             localStorage.setItem('isLoggedIn', 'true');
 
-            // Ανακατεύθυνση βάσει Ρόλου (Απαίτηση 9 της εκφώνησης)
-            if (user.role === 'ADMIN' || user.role === 'SECRETARY') {
-                navigate('/admin-dashboard');
-            } else {
-                navigate('/dashboard');
-            }
+            // ΕΔΩ ΕΙΝΑΙ ΤΟ ΚΛΕΙΔΙ:
+            navigate('/dashboard');
 
         } catch (err) {
-            // Διαχείριση σφαλμάτων (π.χ. 401 Unauthorized)
-            if (err.response && err.response.status === 401) {
-                setError('Λάθος όνομα χρήστη ή κωδικός πρόσβασης.');
-            } else {
-                setError('Πρόβλημα σύνδεσης με τον διακομιστή. Βεβαιωθείτε ότι το Backend τρέχει.');
-            }
-            console.error("Login error:", err);
+            console.error("Login Error:", err.response);
+            setError('Invalid credentials or Server is down');
         }
     };
-
     return (
         <div className="login-container">
             <div className="login-card">

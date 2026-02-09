@@ -1,0 +1,12 @@
+package com.learnhub; // Βεβαιώσου ότι είναι στο root package
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class LearnHubApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(LearnHubApplication.class, args);
+    }
+}

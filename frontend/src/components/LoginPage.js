@@ -1,81 +1,69 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import './LoginPage.css'; // Βεβαιώσου ότι το αρχείο CSS είναι στον ίδιο φάκελο
+import './LoginPage.css';
 
 const LoginPage = () => {
-    // State για τη διαχείριση των πεδίων της φόρμας
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+    const [user, setUser] = useState('');
+    const [pass, setPass] = useState('');
     const [error, setError] = useState('');
 
-    const navigate = useNavigate();
-
     const handleLogin = async (e) => {
-        e.preventDefault(); // ΚΡΑΤΑΕΙ ΤΗ ΣΕΛΙΔΑ - Μην το ξεχάσεις!
+        e.preventDefault();
         setError('');
-
         try {
-            const response = await axios.post('http://localhost:8080/api/auth/login', {
-                username: username,
-                password: password
+            const res = await axios.post('http://localhost:8080/api/auth/login', {
+                username: user,
+                password: pass
             });
-
-            console.log("Login Success:", response.data); // Δες αν έρχονται τα δεδομένα στο Console
-
-            // Αποθήκευση στοιχείων
-            localStorage.setItem('username', response.data.username);
-            localStorage.setItem('isLoggedIn', 'true');
-
-            // ΕΔΩ ΕΙΝΑΙ ΤΟ ΚΛΕΙΔΙ:
-            navigate('/dashboard');
-
+            localStorage.setItem('username', res.data.username);
+            window.location.href = '/dashboard';
         } catch (err) {
-            console.error("Login Error:", err.response);
-            setError('Invalid credentials or Server is down');
+            setError('Invalid username or password. Please try again.');
         }
     };
+
     return (
         <div className="login-container">
-            <div className="login-card">
-                <h2>LearnHub</h2>
-                <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px' }}>
-                    Είσοδος στην πλατφόρμα
-                </p>
+            <div className="login-side-image">
+                <div className="overlay">
+                    <h1>LearnHub</h1>
+                    <p>Connecting Students, Parents, and Administration in one place.</p>
+                </div>
+            </div>
 
-                {error && <div className="error-message">{error}</div>}
+            <div className="login-side-form">
+                <form className="login-box" onSubmit={handleLogin}>
+                    <h2>Welcome Back</h2>
+                    <p className="subtitle">Please enter your details to sign in</p>
 
-                <form onSubmit={handleLogin}>
-                    <div className="form-group">
-                        <label>Όνομα Χρήστη</label>
+                    {error && <div className="error-message">{error}</div>}
+
+                    <div className="input-group">
+                        <label>Username</label>
                         <input
                             type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            placeholder="π.χ. gpapadopoulos"
+                            placeholder="e.g. j.doe"
+                            onChange={e => setUser(e.target.value)}
                             required
                         />
                     </div>
 
-                    <div className="form-group">
-                        <label>Κωδικός Πρόσβασης</label>
+                    <div className="input-group">
+                        <label>Password</label>
                         <input
                             type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••"
+                            onChange={e => setPass(e.target.value)}
                             required
                         />
                     </div>
 
-                    <button type="submit" className="login-button">
-                        Σύνδεση
-                    </button>
-                </form>
+                    <button type="submit" className="login-btn">Sign In</button>
 
-                <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '0.8rem', color: '#999' }}>
-                    &copy; 2026 LearnHub Management System
-                </div>
+                    <div className="login-footer">
+                        <p>Access for: <span>Students</span> • <span>Parents</span> • <span>Staff</span></p>
+                    </div>
+                </form>
             </div>
         </div>
     );

@@ -4,35 +4,39 @@ import './Dashboard.css';
 
 const Dashboard = () => {
     const [courses, setCourses] = useState([]);
-    const username = localStorage.getItem('username') || 'Guest';
+    const username = localStorage.getItem('username') || 'Admin';
 
     useEffect(() => {
+        // Κλήση στο Spring Boot API
         axios.get('http://localhost:8080/api/courses')
-            .then(response => setCourses(response.data))
-            .catch(err => console.error("Error fetching courses:", err));
+            .then(res => setCourses(res.data))
+            .catch(err => console.error("Error fetching data:", err));
     }, []);
 
+    const logout = () => {
+        localStorage.clear();
+        window.location.href = '/';
+    };
+
     return (
-        <div className="dashboard-container">
-            <nav className="navbar">
-                <span className="brand">LearnHub</span>
-                <div className="user-nav">
-                    <span>Welcome, <strong>{username}</strong></span>
-                    <button className="logout-btn" onClick={() => { localStorage.clear(); window.location.href='/'; }}>Logout</button>
+        <div className="dashboard">
+            <nav className="nav">
+                <h2>LearnHub</h2>
+                <div>
+                    <span>Welcome, <b>{username}</b></span>
+                    <button onClick={logout} className="logout-btn">Logout</button>
                 </div>
             </nav>
 
-            <div className="content">
-                <h2>Available Courses</h2>
-                <div className="course-grid">
-                    {courses.map(course => (
-                        <div key={course.cid} className="course-card">
-                            <div className="category-tag">{course.category}</div>
-                            <h3>{course.title}</h3>
-                            <p>{course.description}</p>
-                            <div className="course-footer">
-                                <span>🕒 {course.hours_per_week}h / week</span>
-                            </div>
+            <div className="main-content">
+                <h3>Available Courses</h3>
+                <div className="grid">
+                    {courses.map(c => (
+                        <div key={c.cid} className="card">
+                            <span className="tag">{c.category}</span>
+                            <h4>{c.title}</h4>
+                            <p>{c.description}</p>
+                            <small>⏱ {c.hours_per_week}h/week</small>
                         </div>
                     ))}
                 </div>

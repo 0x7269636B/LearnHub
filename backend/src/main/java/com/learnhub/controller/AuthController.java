@@ -5,9 +5,9 @@ import com.learnhub.model.User;
 import com.learnhub.service.AuthService;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin("http://localhost:3000")
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin("*")
 public class AuthController {
 
     private final AuthService authService;

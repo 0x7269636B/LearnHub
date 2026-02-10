@@ -1,14 +1,212 @@
-.portal-container { display: flex; min-height: 100vh; background: #f8fafc; }
-.sidebar { width: 260px; background: #1e293b; color: white; padding: 20px; }
-.sidebar h2 { margin-bottom: 30px; color: #38bdf8; }
-.sidebar ul { list-style: none; padding: 0; }
-.sidebar li { padding: 12px; cursor: pointer; border-radius: 6px; margin-bottom: 5px; }
-.sidebar li.active { background: #334155; border-left: 4px solid #38bdf8; }
+/* Βασικό Layout */
+.portal-container {
+    display: flex;
+    min-height: 100vh;
+    background: #f8fafc;
+    margin: 0;
+}
 
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background: #1e293b;
+    color: white;
+    padding: 20px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.sidebar h2 {
+    margin: 0;
+    color: #38bdf8;
+    font-size: 1.4rem;
+}
+
+/* Admin Badge */
+.badge {
+    background: #38bdf8;
+    color: #1e293b;
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.sidebar ul { list-style: none; padding: 0; }
+
+.sidebar li {
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    color: #cbd5e1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar li:hover {
+    background: #334155;
+    color: white;
+}
+
+.sidebar li.active {
+    background: #334155;
+    color: #38bdf8;
+    border-left: 4px solid #38bdf8;
+    font-weight: 600;
+}
+
+/* Κύριο Περιεχόμενο */
 .content { flex: 1; padding: 40px; }
-.registration-form { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); max-width: 600px; }
+
+/* Animation για ομαλή εναλλαγή των Tabs */
+.fade-in {
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.content-header h1 {
+    color: #1e293b;
+    margin-bottom: 5px;
+    font-size: 1.8rem;
+}
+
+.content-header p {
+    color: #64748b;
+    margin-bottom: 30px;
+}
+
+/* Φόρμα Εγγραφής (US3) */
+.registration-form {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    max-width: 700px;
+}
+
 .input-row { display: flex; gap: 20px; margin-bottom: 15px; }
+
 .input-group { margin-bottom: 15px; flex: 1; }
-.input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: #64748b; }
-.input-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
-.save-btn { background: #0284c7; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 10px; }
+
+.input-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #64748b;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+}
+
+.save-btn {
+    background: #0284c7;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+    margin-top: 10px;
+    transition: background 0.3s;
+}
+
+.save-btn:hover { background: #0369a1; }
+
+/* Πίνακας Λίστας Μαθητών (US6) */
+.table-container {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    overflow-x: auto;
+}
+
+.student-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.student-table th {
+    padding: 15px;
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    border-bottom: 2px solid #e2e8f0;
+    font-size: 0.9rem;
+}
+
+.student-table td {
+    padding: 15px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 0.95rem;
+}
+
+/* Styling για το όνομα και την ημερομηνία μέσα στον πίνακα */
+.name-cell b {
+    color: #0f172a;
+}
+
+.date-badge {
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.student-table tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Placeholder για τα Coming Soon modules */
+.placeholder-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+    color: #94a3b8;
+    border: 2px dashed #e2e8f0;
+    border-radius: 20px;
+    text-align: center;
+}
+
+/* Responsive για μικρές οθόνες */
+@media (max-width: 768px) {
+    .input-row { flex-direction: column; gap: 0; }
+    .portal-container { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: relative; }
+    .content { padding: 20px; }
+}

@@ -3,6 +3,8 @@ package com.learnhub.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "student")
 @Data
@@ -24,7 +26,7 @@ public class Student {
 
     private String phoneNumber;
 
-    private String registrationDate;
+    private LocalDate dateOfBirth;
 
-    private String birthDate;
+    private LocalDate registrationDate;
 }

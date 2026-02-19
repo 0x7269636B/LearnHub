@@ -9,6 +9,5 @@ import java.util.Optional;
 @Repository
 public interface TeacherRepository extends JpaRepository<Teacher, Long> {
 
-    // ΑΛΛΑΓΗ ΕΔΩ: Από findByUsername σε findByEmail
     Optional<Teacher> findByEmail(String email);
 }

@@ -57,7 +57,7 @@ const LoginPage = () => {
                     <h2>Welcome</h2>
                     {error && <div className="error-message">{error}</div>}
                     <div className="input-group">
-                        <label>Username</label>
+                        <label>Email</label>
                         <input type="text" value={user} onChange={e => setUser(e.target.value)} required />
                     </div>
                     <div className="input-group">

@@ -17,9 +17,12 @@ import java.util.List;
 public class LearnHubApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(LearnHubApplication.class, args);
+//        SpringApplication.run(LearnHubApplication.class, args); // populate the DB
+
     }
 
+
+    // Populate the DataBase if empty - BackUp
     @Bean
     public CommandLineRunner initData(UserRepository userRepository) {
         return args -> {

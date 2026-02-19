@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import ManagementPortal from './components/ManagementPortal';
+import AcademicPortal from './components/AcademicPortal'
 
 function App() {
     return (
@@ -11,7 +12,7 @@ function App() {
                 <Route path="/" element={<LoginPage />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/management" element={<ManagementPortal />} />
-                {/*<Route path="/academic" element={<AcademicPortal />} />*/}
+                <Route path="/academic" element={<AcademicPortal />} />
                 {/*<Route path="/parent" element={<ParentPortal />} />*/}
             </Routes>
         </Router>

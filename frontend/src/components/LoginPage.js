@@ -14,36 +14,42 @@ const LoginPage = () => {
         setLoading(true);
 
         try {
+            // Στέλνουμε το request στο Backend
             const res = await axios.post('http://localhost:8080/api/auth/login', {
-                username: user,
+                username: user, // Αυτό είναι το email που πληκτρολόγησε ο χρήστης
                 password: pass
             });
 
+            // Το Spring Boot μας επιστρέφει τον χρήστη (π.χ. { id: 1, email: "...", role: "TEACHER" })
             const userData = res.data;
-            localStorage.setItem('username', userData.username);
 
-            // 1. Ρόλος TEACHER (Suffix check)
-            if (user.endsWith('_learnhub')) {
-                localStorage.setItem('role', 'TEACHER');
+            // Αποθηκεύουμε τα σωστά δεδομένα στο localStorage
+            localStorage.setItem('email', userData.email);
+            localStorage.setItem('role', userData.role);
+            // Μπορείς να αποθηκεύσεις και το όνομα για να το δείχνεις στο Navbar!
+            localStorage.setItem('firstName', userData.firstName);
+
+            // Ελέγχουμε τον ρόλο ΒΑΣΕΙ ΤΗΣ ΒΑΣΗΣ ΔΕΔΟΜΕΝΩΝ, όχι μαντεύοντας!
+            if (userData.role === 'TEACHER') {
                 window.location.href = '/academic';
             }
-            // 2. Ρόλος ADMIN (Ακριβές όνομα)
-            else if (user === 'admin') {
-                localStorage.setItem('role', 'ADMIN');
+            else if (userData.role === 'ADMIN') {
                 window.location.href = '/management';
             }
-            // 3. Ρόλος STUDENT (Όλα τα άλλα)
-            else {
-                localStorage.setItem('role', 'STUDENT');
+            else if (userData.role === 'STUDENT') {
                 window.location.href = '/dashboard';
             }
+            else {
+                setError('Άγνωστος ρόλος χρήστη.');
+            }
+
         } catch (err) {
-            setError('Invalid credentials. Remember: Staff use _learnhub suffix.');
+            // Αν το Backend ρίξει Exception (π.χ. λάθος κωδικός), θα πιάσει το error εδώ
+            setError('Invalid credentials. Please check your email and password.');
         } finally {
             setLoading(false);
         }
     };
-
     return (
         <div className="login-container">
             <div className="login-side-image">

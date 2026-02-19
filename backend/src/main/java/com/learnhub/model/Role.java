@@ -1,8 +1,7 @@
 package com.learnhub.model;
 
 public enum Role {
-    PARENT,
+    ADMIN,
     TEACHER,
-    SECRETARY,
-    ADMIN
+    STUDENT
 }

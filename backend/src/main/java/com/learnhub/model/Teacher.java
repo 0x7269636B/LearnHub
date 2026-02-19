@@ -1,32 +1,23 @@
 package com.learnhub.model;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "Teacher")
+@DiscriminatorValue("TEACHER")
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Teacher {
+@SuperBuilder
+public class Teacher extends User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long tid;
+    private String specialization; // Π.χ. "Μαθηματικά"
 
-    @Column(nullable = false)
-    private String firstName;
-
-    @Column(nullable = false)
-    private String lastName;
-
-    private String email;
-
-    private String username;
-
-    private String password;
-
-    private String speciality;
-
-    private int salary;
+    private String afm; // ΑΦΜ (αν χρειάζεται για μισθοδοσία)
 }

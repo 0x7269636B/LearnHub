@@ -5,7 +5,27 @@ import axios from "axios";
 const ManagementPortal = () => {
     const [adminName, setAdminName] = useState('');
     const [activeTab, setActiveTab] = useState('dashboard');
+    const [stats, setStats] = useState({ students: 0, teachers: 0, courses: 0 });
+    const [recentUsers, setRecentUsers] = useState([]);
 
+    useEffect(() => {
+        if (activeTab === 'dashboard') {
+            fetchDashboardData();
+        }
+    }, [activeTab]);
+
+    const fetchDashboardData = async () => {
+        try {
+            // Χτυπάμε τα 2 νέα endpoints του AdminController
+            const statsRes = await axios.get('http://localhost:8080/api/admin/stats');
+            setStats(statsRes.data);
+
+            const usersRes = await axios.get('http://localhost:8080/api/admin/recent-users');
+            setRecentUsers(usersRes.data);
+        } catch (error) {
+            console.error("Σφάλμα φόρτωσης δεδομένων Dashboard:", error);
+        }
+    };
     useEffect(() => {
         const name = localStorage.getItem('firstName') || 'Admin';
         setAdminName(name);
@@ -51,6 +71,8 @@ const ManagementPortal = () => {
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
 
+
+
     return (
         <div className="management-container">
             {/* Sidebar Admin */}
@@ -91,7 +113,7 @@ const ManagementPortal = () => {
             {/* Κεντρικό Περιεχόμενο */}
             <main className="content fade-in">
                 <div className="content-header">
-                    <h1>Κέντρο Ελέγχου, {adminName} ⚡</h1>
+                    <h1>Κέντρο Ελέγχου, {adminName}</h1>
                     <p>Διαχειρίσου το φροντιστήριο, τους χρήστες και τα μαθήματα.</p>
                 </div>
 
@@ -100,15 +122,15 @@ const ManagementPortal = () => {
                         <div className="stats-grid">
                             <div className="stat-card">
                                 <h3>Σύνολο Μαθητών</h3>
-                                <div className="stat-value">128</div>
+                                <div className="stat-value">{stats.students}</div>
                             </div>
                             <div className="stat-card">
                                 <h3>Σύνολο Καθηγητών</h3>
-                                <div className="stat-value">12</div>
+                                <div className="stat-value">{stats.teachers}</div>
                             </div>
                             <div className="stat-card">
                                 <h3>Ενεργά Μαθήματα</h3>
-                                <div className="stat-value">24</div>
+                                <div className="stat-value">{stats.courses}</div>
                             </div>
                         </div>
 
@@ -120,33 +142,36 @@ const ManagementPortal = () => {
                                     <tr>
                                         <th>Ονοματεπώνυμο</th>
                                         <th>Ρόλος</th>
-                                        <th>Ημερομηνία</th>
+                                        <th>ID / Email</th>
                                         <th>Κατάσταση</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <tr>
-                                        <td>
-                                            <div className="user-cell">
-                                                <b>Γιώργος Παπαδόπουλος</b>
-                                                <span>giorgos@test.com</span>
-                                            </div>
-                                        </td>
-                                        <td><span className="badge role-student">Student</span></td>
-                                        <td>20 Οκτ 2023</td>
-                                        <td><span className="status-badge active">Ενεργός</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div className="user-cell">
-                                                <b>Μαρία Νικολάου</b>
-                                                <span>maria@test.com</span>
-                                            </div>
-                                        </td>
-                                        <td><span className="badge role-teacher">Teacher</span></td>
-                                        <td>18 Οκτ 2023</td>
-                                        <td><span className="status-badge active">Ενεργή</span></td>
-                                    </tr>
+                                    {recentUsers.map((user) => (
+                                        <tr key={user.id}>
+                                            <td>
+                                                <div className="user-cell">
+                                                    <b>{user.firstName} {user.lastName}</b>
+                                                    <span>{user.email}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                    <span className={`badge ${user.role === 'STUDENT' ? 'role-student' : user.role === 'TEACHER' ? 'role-teacher' : 'admin-badge'}`}>
+                                        {user.role}
+                                    </span>
+                                            </td>
+                                            <td>Μέλος #{user.id}</td>
+                                            <td><span className="status-badge active">Ενεργός</span></td>
+                                        </tr>
+                                    ))}
+
+                                    {recentUsers.length === 0 && (
+                                        <tr>
+                                            <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>
+                                                Δεν βρέθηκαν χρήστες.
+                                            </td>
+                                        </tr>
+                                    )}
                                     </tbody>
                                 </table>
                             </div>

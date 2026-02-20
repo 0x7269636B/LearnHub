@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './ManagementPortal.css';
+import axios from "axios";
 
 const ManagementPortal = () => {
     const [adminName, setAdminName] = useState('');
@@ -15,6 +16,41 @@ const ManagementPortal = () => {
         window.location.href = '/';
     };
 
+    const handleCreateUser = async (e) => {
+        e.preventDefault();
+        setMessage('');
+        setIsError(false);
+
+        try {
+            const response = await axios.post('http://localhost:8080/api/users', formData);
+            setMessage('Ο χρήστης δημιουργήθηκε επιτυχώς!');
+            setIsError(false); // Επιτυχία = Πράσινο
+
+            // Καθαρισμός φόρμας
+            setFormData({
+                firstName: '', lastName: '', email: '', password: '', phoneNumber: '', role: 'STUDENT'
+            });
+        } catch (error) {
+            setMessage('Σφάλμα: ' + (error.response?.data || 'Αποτυχία δημιουργίας.'));
+            setIsError(true);
+        }
+    };
+
+    const handleInputChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        phoneNumber: '',
+        role: 'STUDENT' // Default
+    });
+    const [message, setMessage] = useState('');
+    const [isError, setIsError] = useState(false);
+
     return (
         <div className="management-container">
             {/* Sidebar Admin */}
@@ -29,16 +65,19 @@ const ManagementPortal = () => {
 
                 <ul className="sidebar-menu">
                     <li className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>
-                        📊 Επισκόπηση
+                        Επισκόπηση
                     </li>
                     <li className={activeTab === 'students' ? 'active' : ''} onClick={() => setActiveTab('students')}>
-                        👩‍🎓 Μαθητές
+                        Μαθητές
                     </li>
                     <li className={activeTab === 'teachers' ? 'active' : ''} onClick={() => setActiveTab('teachers')}>
-                        👨‍🏫 Καθηγητές
+                        Καθηγητές
                     </li>
                     <li className={activeTab === 'courses' ? 'active' : ''} onClick={() => setActiveTab('courses')}>
-                        📚 Μαθήματα
+                        Μαθήματα
+                    </li>
+                    <li className={activeTab === 'addUser' ? 'active' : ''} onClick={() => setActiveTab('addUser')}>
+                        Νέος Χρήστης
                     </li>
                 </ul>
 
@@ -58,7 +97,6 @@ const ManagementPortal = () => {
 
                 {activeTab === 'dashboard' && (
                     <>
-                        {/* Κάρτες Στατιστικών */}
                         <div className="stats-grid">
                             <div className="stat-card">
                                 <h3>Σύνολο Μαθητών</h3>
@@ -74,7 +112,6 @@ const ManagementPortal = () => {
                             </div>
                         </div>
 
-                        {/* Πίνακας Τελευταίων Εγγραφών */}
                         <div className="card-container mt-40">
                             <h3 className="section-title">Πρόσφατες Εγγραφές</h3>
                             <div className="table-container">
@@ -117,12 +154,67 @@ const ManagementPortal = () => {
                     </>
                 )}
 
-                {activeTab !== 'dashboard' && (
-                    <div className="placeholder-content">
-                        <h3>Ενότητα "{activeTab}" υπό κατασκευή</h3>
-                        <p>Εδώ θα εμφανιστούν οι φόρμες διαχείρισης (CRUD).</p>
+                {activeTab === 'addUser' && (
+                    <div className="card-container registration-form fade-in">
+                        <h3 className="section-title">Δημιουργία Νέου Χρήστη</h3>
+
+                        {message && (
+                            <div style={{
+                                padding: '12px 16px',
+                                marginBottom: '24px',
+                                borderRadius: '8px',
+                                fontWeight: '500',
+                                backgroundColor: isError ? '#fee2e2' : '#dcfce7',
+                                color: isError ? '#ef4444' : '#15803d',
+                                border: `1px solid ${isError ? '#fca5a5' : '#86efac'}`
+                            }}>
+                                {message}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleCreateUser}>
+                            <div className="input-row">
+                                <div className="input-group">
+                                    <label>Όνομα</label>
+                                    <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
+                                </div>
+                                <div className="input-group">
+                                    <label>Επίθετο</label>
+                                    <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} required />
+                                </div>
+                            </div>
+
+                            <div className="input-row">
+                                <div className="input-group">
+                                    <label>Email</label>
+                                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} required />
+                                </div>
+                                <div className="input-group">
+                                    <label>Κωδικός Πρόσβασης</label>
+                                    <input type="password" name="password" value={formData.password} onChange={handleInputChange} required />
+                                </div>
+                            </div>
+
+                            <div className="input-row">
+                                <div className="input-group">
+                                    <label>Τηλέφωνο</label>
+                                    <input type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} />
+                                </div>
+                                <div className="input-group">
+                                    <label>Ρόλος Χρήστη</label>
+                                    <select name="role" value={formData.role} onChange={handleInputChange} required>
+                                        <option value="STUDENT">Μαθητής (Student)</option>
+                                        <option value="TEACHER">Καθηγητής (Teacher)</option>
+                                        <option value="ADMIN">Διαχειριστής (Admin)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button type="submit" className="save-btn">Δημιουργία Χρήστη</button>
+                        </form>
                     </div>
                 )}
+
             </main>
         </div>
     );

@@ -1,162 +1,126 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import './ManagementPortal.css';
 
 const ManagementPortal = () => {
-    const [activeTab, setActiveTab] = useState('register');
-    const [students, setStudents] = useState([]);
-
-    const [student, setStudent] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phoneNumber: '',
-        dateOfBirth: '',
-        registrationDate: new Date().toISOString().split('T')[0]
-    });
-
-    const fetchStudents = async () => {
-        try {
-            const res = await axios.get('http://localhost:8080/api/students');
-            setStudents(res.data);
-        } catch (err) {
-            console.error("Error fetching students:", err);
-        }
-    };
+    const [adminName, setAdminName] = useState('');
+    const [activeTab, setActiveTab] = useState('dashboard');
 
     useEffect(() => {
-        if (activeTab === 'list') {
-            fetchStudents();
-        }
-    }, [activeTab]);
+        const name = localStorage.getItem('firstName') || 'Admin';
+        setAdminName(name);
+    }, []);
 
-    const handleChange = (e) => {
-        setStudent({ ...student, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await axios.post('http://localhost:8080/api/students', student);
-            if (response.status === 200 || response.status === 201) {
-                alert('Student ' + student.firstName + ' was saved to Database!');
-                setStudent({
-                    firstName: '', lastName: '', email: '', phoneNumber: '',
-                    dateOfBirth: '', registrationDate: new Date().toISOString().split('T')[0]
-                });
-            }
-        } catch (err) {
-            console.error("Failed to save student:", err);
-            alert('Error connecting to Backend.');
-        }
+    const handleLogout = () => {
+        localStorage.clear();
+        window.location.href = '/';
     };
 
     return (
-        <div className="portal-container">
+        <div className="management-container">
+            {/* Sidebar Admin */}
             <aside className="sidebar">
                 <div className="sidebar-header">
-                    <h2>Management</h2>
-                    <span className="badge">Admin</span>
+                    <div className="logo-icon admin-logo">LH</div>
+                    <div>
+                        <h2>LearnHub</h2>
+                        <span className="badge admin-badge">Administrator</span>
+                    </div>
                 </div>
-                <nav>
-                    <ul>
-                        <li className={activeTab === 'register' ? 'active' : ''} onClick={() => setActiveTab('register')}>
-                            <i className="icon-user-plus"></i> Register Student (US3)
-                        </li>
-                        <li className={activeTab === 'assignment' ? 'active' : ''} onClick={() => setActiveTab('assignment')}>
-                            <i className="icon-users"></i> Class Assignment (US4)
-                        </li>
-                        <li className={activeTab === 'tuition' ? 'active' : ''} onClick={() => setActiveTab('tuition')}>
-                            <i className="icon-credit-card"></i> Tuition Tracking (US5)
-                        </li>
-                        {/* Η λίστα μπήκε τελευταία όπως ζήτησες */}
-                        <li className={activeTab === 'list' ? 'active' : ''} onClick={() => setActiveTab('list')}>
-                            <i className="icon-list"></i> Student List (US6)
-                        </li>
-                    </ul>
-                </nav>
+
+                <ul className="sidebar-menu">
+                    <li className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>
+                        📊 Επισκόπηση
+                    </li>
+                    <li className={activeTab === 'students' ? 'active' : ''} onClick={() => setActiveTab('students')}>
+                        👩‍🎓 Μαθητές
+                    </li>
+                    <li className={activeTab === 'teachers' ? 'active' : ''} onClick={() => setActiveTab('teachers')}>
+                        👨‍🏫 Καθηγητές
+                    </li>
+                    <li className={activeTab === 'courses' ? 'active' : ''} onClick={() => setActiveTab('courses')}>
+                        📚 Μαθήματα
+                    </li>
+                </ul>
+
+                <div className="sidebar-footer">
+                    <button onClick={handleLogout} className="logout-btn-sidebar">
+                        Αποσύνδεση
+                    </button>
+                </div>
             </aside>
 
-            <main className="content">
-                {activeTab === 'register' && (
-                    <div className="fade-in">
-                        <header className="content-header">
-                            <h1>New Student Enrollment</h1>
-                            <p>Fill in the details to add a new student to the platform.</p>
-                        </header>
-                        <form className="registration-form" onSubmit={handleSubmit}>
-                            <div className="input-row">
-                                <div className="input-group">
-                                    <label>First Name</label>
-                                    <input name="firstName" value={student.firstName} onChange={handleChange} placeholder="John" required />
-                                </div>
-                                <div className="input-group">
-                                    <label>Last Name</label>
-                                    <input name="lastName" value={student.lastName} onChange={handleChange} placeholder="Doe" required />
-                                </div>
-                            </div>
-                            <div className="input-group">
-                                <label>Email Address</label>
-                                <input type="email" name="email" value={student.email} onChange={handleChange} placeholder="john.doe@example.com" required />
-                            </div>
-                            <div className="input-group">
-                                <label>Phone Number</label>
-                                <input name="phoneNumber" value={student.phoneNumber} onChange={handleChange} placeholder="+30 690 000 0000" required />
-                            </div>
-                            <div className="input-row">
-                                <div className="input-group">
-                                    <label>Date of Birth</label>
-                                    <input type="date" name="dateOfBirth" value={student.dateOfBirth} onChange={handleChange} required />
-                                </div>
-                                <div className="input-group">
-                                    <label>Registration Date</label>
-                                    <input type="date" name="registrationDate" value={student.registrationDate} onChange={handleChange} required />
-                                </div>
-                            </div>
-                            <button type="submit" className="save-btn">Register Student</button>
-                        </form>
-                    </div>
-                )}
+            {/* Κεντρικό Περιεχόμενο */}
+            <main className="content fade-in">
+                <div className="content-header">
+                    <h1>Κέντρο Ελέγχου, {adminName} ⚡</h1>
+                    <p>Διαχειρίσου το φροντιστήριο, τους χρήστες και τα μαθήματα.</p>
+                </div>
 
-                {activeTab === 'list' && (
-                    <div className="fade-in">
-                        <header className="content-header">
-                            <h1>Student Database</h1>
-                            <p>Manage and view all registered students.</p>
-                        </header>
-                        <div className="table-container">
-                            <table className="student-table">
-                                <thead>
-                                <tr>
-                                    <th>Full Name</th>
-                                    <th>Contact Email</th>
-                                    <th>Phone</th>
-                                    <th>Reg. Date</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {students.length > 0 ? (
-                                    students.map(s => (
-                                        <tr key={s.id}>
-                                            <td className="name-cell"><b>{s.firstName} {s.lastName}</b></td>
-                                            <td>{s.email}</td>
-                                            <td>{s.phoneNumber}</td>
-                                            <td><span className="date-badge">{s.registrationDate}</span></td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr><td colSpan="4" style={{textAlign: 'center', padding: '20px'}}>No students found.</td></tr>
-                                )}
-                                </tbody>
-                            </table>
+                {activeTab === 'dashboard' && (
+                    <>
+                        {/* Κάρτες Στατιστικών */}
+                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <h3>Σύνολο Μαθητών</h3>
+                                <div className="stat-value">128</div>
+                            </div>
+                            <div className="stat-card">
+                                <h3>Σύνολο Καθηγητών</h3>
+                                <div className="stat-value">12</div>
+                            </div>
+                            <div className="stat-card">
+                                <h3>Ενεργά Μαθήματα</h3>
+                                <div className="stat-value">24</div>
+                            </div>
                         </div>
-                    </div>
+
+                        {/* Πίνακας Τελευταίων Εγγραφών */}
+                        <div className="card-container mt-40">
+                            <h3 className="section-title">Πρόσφατες Εγγραφές</h3>
+                            <div className="table-container">
+                                <table className="management-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Ονοματεπώνυμο</th>
+                                        <th>Ρόλος</th>
+                                        <th>Ημερομηνία</th>
+                                        <th>Κατάσταση</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td>
+                                            <div className="user-cell">
+                                                <b>Γιώργος Παπαδόπουλος</b>
+                                                <span>giorgos@test.com</span>
+                                            </div>
+                                        </td>
+                                        <td><span className="badge role-student">Student</span></td>
+                                        <td>20 Οκτ 2023</td>
+                                        <td><span className="status-badge active">Ενεργός</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div className="user-cell">
+                                                <b>Μαρία Νικολάου</b>
+                                                <span>maria@test.com</span>
+                                            </div>
+                                        </td>
+                                        <td><span className="badge role-teacher">Teacher</span></td>
+                                        <td>18 Οκτ 2023</td>
+                                        <td><span className="status-badge active">Ενεργή</span></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </>
                 )}
 
-                {(activeTab === 'assignment' || activeTab === 'tuition') && (
+                {activeTab !== 'dashboard' && (
                     <div className="placeholder-content">
-                        <h1>{activeTab === 'assignment' ? 'Class Assignment' : 'Tuition Tracking'}</h1>
-                        <p>Module integration in progress...</p>
+                        <h3>Ενότητα "{activeTab}" υπό κατασκευή</h3>
+                        <p>Εδώ θα εμφανιστούν οι φόρμες διαχείρισης (CRUD).</p>
                     </div>
                 )}
             </main>

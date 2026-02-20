@@ -24,7 +24,7 @@ const LoginPage = () => {
             const userData = res.data;
 
             // Αποθηκεύουμε τα σωστά δεδομένα στο localStorage
-            localStorage.setItem('email', userData.email);
+            localStorage.setItem('emmail', userData.email);
             localStorage.setItem('role', userData.role);
             // Μπορείς να αποθηκεύσεις και το όνομα για να το δείχνεις στο Navbar!
             localStorage.setItem('firstName', userData.firstName);

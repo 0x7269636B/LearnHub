@@ -17,7 +17,7 @@ import java.util.List;
 public class LearnHubApplication {
 
     public static void main(String[] args) {
-//        SpringApplication.run(LearnHubApplication.class, args); // populate the DB
+        SpringApplication.run(LearnHubApplication.class, args);
 
     }
 

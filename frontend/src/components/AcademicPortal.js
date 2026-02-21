@@ -5,9 +5,9 @@ import axios from 'axios';
 const AcademicPortal = () => {
     const [teacherName, setTeacherName] = useState('');
     const [activeTab, setActiveTab] = useState('dashboard');
-
     const [courses, setCourses] = useState([]);
     const [enrollments, setEnrollments] = useState([]);
+    const [editedGrades, setEditedGrades] = useState({});
 
     useEffect(() => {
         const name = localStorage.getItem('firstName') || 'Καθηγητή';
@@ -43,6 +43,25 @@ const AcademicPortal = () => {
         } catch (error) {
             console.error("Σφάλμα κατά την ενημέρωση απουσίας:", error);
             alert("Υπήρξε πρόβλημα στην ενημέρωση της απουσίας.");
+        }
+    };
+
+    const handleGradeChange = (enrollmentId, value) => {
+        setEditedGrades({ ...editedGrades, [enrollmentId]: value });
+    };
+
+    const handleSaveGrade = async (enrollmentId) => {
+        const gradeValue = editedGrades[enrollmentId];
+
+        if (gradeValue === undefined || gradeValue === '') return;
+
+        try {
+            await axios.put(`http://localhost:8080/api/admin/enrollments/${enrollmentId}/grade?grade=${gradeValue}`);
+            fetchTeacherData();
+            alert("Ο βαθμός αποθηκεύτηκε επιτυχώς!");
+        } catch (error) {
+            console.error("Σφάλμα κατά την καταχώρηση βαθμού:", error);
+            alert("Υπήρξε πρόβλημα στην καταχώρηση βαθμού.");
         }
     };
 
@@ -253,9 +272,95 @@ const AcademicPortal = () => {
                 )}
 
                 {activeTab === 'students' && (
-                    <div className="card-container placeholder-content fade-in">
-                        <h3>Ενότητα υπό κατασκευή</h3>
-                        <p>Εδώ θα συνδέσουμε τη δυνατότητα βαθμολόγησης (US8) σύντομα!</p>
+                    <div className="fade-in">
+                        <div className="content-header" style={{ marginBottom: '24px' }}>
+                            <h3 className="section-title" style={{ margin: 0 }}>Βαθμολογίες Μαθητών (Ανά Μάθημα)</h3>
+                        </div>
+
+                        {courses.map(course => {
+                            const courseEnrollments = getEnrollmentsForCourse(course.cid);
+
+                            return (
+                                <div key={course.cid} className="card-container" style={{ marginBottom: '24px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                                        <h3 style={{ margin: 0, color: '#4f46e5', fontSize: '1.2rem' }}>
+                                            📝 {course.title}
+                                        </h3>
+                                        <span className="badge" style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' }}>
+                            {course.category}
+                        </span>
+                                    </div>
+
+                                    {courseEnrollments.length > 0 ? (
+                                        <div className="table-container">
+                                            <table className="academic-table">
+                                                <thead>
+                                                <tr>
+                                                    <th>Ονοματεπώνυμο Μαθητή</th>
+                                                    <th style={{ textAlign: 'center' }}>Τρέχων Βαθμός</th>
+                                                    <th style={{ textAlign: 'center', width: '200px' }}>Νέα Βαθμολογία</th>
+                                                    <th style={{ textAlign: 'center' }}>Ενέργεια</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {courseEnrollments.map(enr => (
+                                                    <tr key={enr.id}>
+                                                        <td>
+                                                            <div className="course-cell">
+                                                                <b>{enr.student.firstName} {enr.student.lastName}</b>
+                                                                <span>ID: #{enr.student.id}</span>
+                                                            </div>
+                                                        </td>
+
+                                                        <td style={{ textAlign: 'center' }}>
+                                                <span style={{
+                                                    fontWeight: 'bold', fontSize: '1.1rem',
+                                                    color: enr.grade ? '#10b981' : '#94a3b8'
+                                                }}>
+                                                    {enr.grade !== null ? enr.grade : '-'}
+                                                </span>
+                                                        </td>
+
+                                                        <td style={{ textAlign: 'center' }}>
+                                                            <input
+                                                                type="number"
+                                                                min="0" max="20" step="0.5"
+                                                                value={editedGrades[enr.id] !== undefined ? editedGrades[enr.id] : (enr.grade || '')}
+                                                                onChange={(e) => handleGradeChange(enr.id, e.target.value)}
+                                                                style={{
+                                                                    width: '80px', padding: '6px', borderRadius: '4px',
+                                                                    border: '1px solid #cbd5e1', textAlign: 'center'
+                                                                }}
+                                                                placeholder="π.χ. 18.5"
+                                                            />
+                                                        </td>
+                                                        <td style={{ textAlign: 'center' }}>
+                                                            <button
+                                                                onClick={() => handleSaveGrade(enr.id)}
+                                                                style={{
+                                                                    padding: '6px 16px', background: '#4f46e5', color: '#fff',
+                                                                    border: 'none', borderRadius: '6px', cursor: 'pointer',
+                                                                    fontWeight: '600', transition: 'background 0.2s'
+                                                                }}
+                                                                onMouseOver={(e) => e.target.style.background = '#4338ca'}
+                                                                onMouseOut={(e) => e.target.style.background = '#4f46e5'}
+                                                            >
+                                                                Αποθήκευση
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ) : (
+                                        <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px', textAlign: 'center', color: '#64748b' }}>
+                                            Δεν υπάρχουν μαθητές για βαθμολόγηση σε αυτό το τμήμα.
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </main>

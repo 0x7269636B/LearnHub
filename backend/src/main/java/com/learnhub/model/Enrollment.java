@@ -28,5 +28,6 @@ public class Enrollment {
     @Column(nullable = false, columnDefinition = "int default 0")
     private Integer absences = 0;
 
-    // Future dev: grades, absences
+    @Column(nullable = true)
+    private Double grade;
 }

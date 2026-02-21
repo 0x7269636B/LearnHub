@@ -123,4 +123,17 @@ public class AdminController {
         }
     }
 
+    @PutMapping("/enrollments/{id}/grade")
+    public ResponseEntity<?> updateGrade(@PathVariable Long id, @RequestParam Double grade) {
+        try {
+            return enrollmentRepository.findById(id).map(enr -> {
+                enr.setGrade(grade);
+                com.learnhub.model.Enrollment updatedEnrollment = enrollmentRepository.save(enr);
+                return ResponseEntity.ok(updatedEnrollment);
+            }).orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Σφάλμα κατά την καταχώρηση βαθμού.");
+        }
+    }
+
 }

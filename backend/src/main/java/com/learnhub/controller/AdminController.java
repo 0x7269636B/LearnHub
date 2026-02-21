@@ -1,8 +1,10 @@
 package com.learnhub.controller;
 
+import com.learnhub.model.Course;
 import com.learnhub.model.Role;
 import com.learnhub.model.User;
 import com.learnhub.repository.CourseRepository;
+import com.learnhub.repository.EnrollmentRepository;
 import com.learnhub.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ public class AdminController {
 
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
+    private final EnrollmentRepository enrollmentRepository;
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Long>> getDashboardStats() {
@@ -78,4 +81,30 @@ public class AdminController {
             return ResponseEntity.badRequest().body("Σφάλμα κατά την ενημέρωση του μαθήματος.");
         }
     }
+
+    @GetMapping("/enrollments")
+    public ResponseEntity<?> getAllEnrollments() {
+        return ResponseEntity.ok(enrollmentRepository.findAll());
+    }
+
+    @PostMapping("/enrollments")
+    public ResponseEntity<?> enrollStudent(@RequestBody com.learnhub.model.EnrollmentRequest request) {
+        try {
+            User student = userRepository.findById(request.getStudentId())
+                    .orElseThrow(() -> new RuntimeException("Ο μαθητής δεν βρέθηκε"));
+            Course course = courseRepository.findById(request.getCourseId())
+                    .orElseThrow(() -> new RuntimeException("Το μάθημα δεν βρέθηκε"));
+
+            com.learnhub.model.Enrollment enrollment = com.learnhub.model.Enrollment.builder()
+                    .student(student)
+                    .course(course)
+                    .enrollmentDate(java.time.LocalDate.now())
+                    .build();
+
+            return ResponseEntity.ok(enrollmentRepository.save(enrollment));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Σφάλμα κατά την ανάθεση του μαθητή.");
+        }
+    }
+
 }

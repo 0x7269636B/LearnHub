@@ -12,6 +12,8 @@ const ManagementPortal = () => {
     const [courses, setCourses] = useState([]);
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
+    const [enrollments, setEnrollments] = useState([]);
+    const [enrollFormData, setEnrollFormData] = useState({ studentId: '', courseId: '' });
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -40,7 +42,21 @@ const ManagementPortal = () => {
         else if (activeTab === 'students') fetchStudents();
         else if (activeTab === 'teachers') fetchTeachers();
         else if (activeTab === 'courses') fetchCourses();
+        else if (activeTab === 'enrollments') {
+            fetchStudents();
+            fetchCourses();
+            fetchEnrollments();
+        }
     }, [activeTab]);
+
+    const fetchEnrollments = async () => {
+        try {
+            const res = await axios.get('http://localhost:8080/api/admin/enrollments');
+            setEnrollments(res.data);
+        } catch (err) {
+            console.error("Σφάλμα φόρτωσης αναθέσεων", err);
+        }
+    };
 
     const fetchDashboardData = async () => {
         try {
@@ -145,6 +161,22 @@ const ManagementPortal = () => {
         }
     };
 
+    const handleEnroll = async (e) => {
+        e.preventDefault();
+        setMessage('');
+        setIsError(false);
+
+        try {
+            await axios.post('http://localhost:8080/api/admin/enrollments', enrollFormData);
+            setMessage('Η ανάθεση του μαθητή στο μάθημα έγινε επιτυχώς!');
+            setIsError(false);
+            fetchEnrollments(); // Ανανεώνουμε τη λίστα
+        } catch (error) {
+            setMessage((error.response?.data || 'Σφάλμα κατά την ανάθεση.'));
+            setIsError(true);
+        }
+    };
+
     return (
         <div className="management-container">
             <aside className="sidebar">
@@ -168,6 +200,9 @@ const ManagementPortal = () => {
                     </li>
                     <li className={activeTab === 'courses' ? 'active' : ''} onClick={() => setActiveTab('courses')}>
                         Μαθήματα
+                    </li>
+                    <li className={activeTab === 'enrollments' ? 'active' : ''} onClick={() => setActiveTab('enrollments')}>
+                        Αναθέσεις
                     </li>
                     <li className={activeTab === 'addUser' ? 'active' : ''} onClick={() => setActiveTab('addUser')}>
                         Νέος Χρήστης
@@ -519,6 +554,75 @@ const ManagementPortal = () => {
                         </form>
                     </div>
                 )}
+
+                {activeTab === 'enrollments' && (
+                    <div className="fade-in">
+                        <div className="content-header" style={{ marginBottom: '24px' }}>
+                            <h3 className="section-title" style={{ margin: 0 }}>Ανάθεση Μαθητή σε Μάθημα</h3>
+                        </div>
+
+                        <div className="card-container registration-form" style={{ marginBottom: '40px', maxWidth: '100%' }}>
+                            {message && (
+                                <div style={{ padding: '12px 16px', marginBottom: '24px', borderRadius: '8px', fontWeight: '500', backgroundColor: isError ? '#fee2e2' : '#dcfce7', color: isError ? '#ef4444' : '#15803d', border: `1px solid ${isError ? '#fca5a5' : '#86efac'}` }}>
+                                    {message}
+                                </div>
+                            )}
+
+                            <form onSubmit={handleEnroll} style={{ display: 'flex', gap: '20px', alignItems: 'flex-end' }}>
+                                <div className="input-group" style={{ marginBottom: 0, flex: 2 }}>
+                                    <label>Επιλογή Μαθητή</label>
+                                    <select name="studentId" value={enrollFormData.studentId} onChange={(e) => setEnrollFormData({ ...enrollFormData, studentId: e.target.value })} required>
+                                        <option value="">-- Επίλεξε Μαθητή --</option>
+                                        {students.map(s => <option key={s.id} value={s.id}>{s.firstName} {s.lastName} (ID: {s.id})</option>)}
+                                    </select>
+                                </div>
+
+                                <div className="input-group" style={{ marginBottom: 0, flex: 2 }}>
+                                    <label>Επιλογή Μαθήματος</label>
+                                    <select name="courseId" value={enrollFormData.courseId} onChange={(e) => setEnrollFormData({ ...enrollFormData, courseId: e.target.value })} required>
+                                        <option value="">-- Επίλεξε Μάθημα --</option>
+                                        {courses.map(c => <option key={c.cid} value={c.cid}>{c.title} ({c.category})</option>)}
+                                    </select>
+                                </div>
+
+                                <button type="submit" className="save-btn" style={{ marginTop: 0, flex: 1, padding: '12px 16px' }}>
+                                    Ολοκλήρωση
+                                </button>
+                            </form>
+                        </div>
+
+                        {/* ΛΙΣΤΑ ΥΠΑΡΧΟΥΣΩΝ ΑΝΑΘΕΣΕΩΝ */}
+                        <div className="card-container">
+                            <h3 className="section-title" style={{ marginBottom: '20px' }}>Τρέχουσες Αναθέσεις</h3>
+                            <div className="table-container">
+                                <table className="management-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Μαθητής</th>
+                                        <th>Μάθημα</th>
+                                        <th>Κατηγορία</th>
+                                        <th>Ημ/νία Εγγραφής</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {enrollments.map(enr => (
+                                        <tr key={enr.id}>
+                                            <td><b>{enr.student.firstName} {enr.student.lastName}</b></td>
+                                            <td><span style={{ fontWeight: '600', color: '#4f46e5' }}>{enr.course.title}</span></td>
+                                            <td>{enr.course.category}</td>
+                                            <td>{enr.enrollmentDate}</td>
+                                        </tr>
+                                    ))}
+                                    {enrollments.length === 0 && (
+                                        <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>Δεν υπάρχουν εγγεγραμμένοι μαθητές.</td></tr>
+                                    )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
             </main>
         </div>
     );

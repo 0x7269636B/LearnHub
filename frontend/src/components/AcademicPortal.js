@@ -10,10 +10,8 @@ const AcademicPortal = () => {
     const [enrollments, setEnrollments] = useState([]);
 
     useEffect(() => {
-
         const name = localStorage.getItem('firstName') || 'Καθηγητή';
         setTeacherName(name);
-
         fetchTeacherData();
     }, []);
 
@@ -34,15 +32,22 @@ const AcademicPortal = () => {
         window.location.href = '/';
     };
 
-    const getStudentsForCourse = (courseId) => {
-        return enrollments
-            .filter(enr => enr.course.cid === courseId)
-            .map(enr => enr.student);
+    const getEnrollmentsForCourse = (courseId) => {
+        return enrollments.filter(enr => enr.course.cid === courseId);
+    };
+
+    const handleUpdateAbsence = async (enrollmentId, hours) => {
+        try {
+            await axios.put(`http://localhost:8080/api/admin/enrollments/${enrollmentId}/absences?hours=${hours}`);
+            fetchTeacherData();
+        } catch (error) {
+            console.error("Σφάλμα κατά την ενημέρωση απουσίας:", error);
+            alert("Υπήρξε πρόβλημα στην ενημέρωση της απουσίας.");
+        }
     };
 
     return (
         <div className="academic-container">
-            {/* Sidebar Καθηγητή */}
             <aside className="sidebar">
                 <div className="sidebar-header">
                     <div className="logo-icon">LH</div>
@@ -143,7 +148,7 @@ const AcademicPortal = () => {
                         </div>
 
                         {courses.map(course => {
-                            const enrolledStudents = getStudentsForCourse(course.cid);
+                            const courseEnrollments = getEnrollmentsForCourse(course.cid);
 
                             return (
                                 <div key={course.cid} className="card-container" style={{ marginBottom: '24px' }}>
@@ -155,32 +160,76 @@ const AcademicPortal = () => {
                                             {course.category}
                                         </span>
                                         <span style={{ marginLeft: 'auto', fontWeight: 'bold', color: '#64748b' }}>
-                                            Σύνολο: {enrolledStudents.length} μαθητές
+                                            Σύνολο: {courseEnrollments.length} μαθητές
                                         </span>
                                     </div>
 
-                                    {enrolledStudents.length > 0 ? (
+                                    {courseEnrollments.length > 0 ? (
                                         <div className="table-container">
                                             <table className="academic-table">
                                                 <thead>
                                                 <tr>
-                                                    <th>ID</th>
                                                     <th>Ονοματεπώνυμο Μαθητή</th>
                                                     <th>Email</th>
-                                                    <th>Τηλέφωνο</th>
+                                                    <th style={{ textAlign: 'center' }}>Απουσίες</th>
+                                                    <th style={{ textAlign: 'center' }}>Ενέργειες</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
-                                                {enrolledStudents.map(student => (
-                                                    <tr key={student.id}>
-                                                        <td style={{ color: '#64748b', fontWeight: '600' }}>#{student.id}</td>
+                                                {courseEnrollments.map(enr => (
+                                                    <tr key={enr.id}>
                                                         <td>
                                                             <div className="course-cell">
-                                                                <b>{student.firstName} {student.lastName}</b>
+                                                                <b>{enr.student.firstName} {enr.student.lastName}</b>
+                                                                <span>ID: #{enr.student.id}</span>
                                                             </div>
                                                         </td>
-                                                        <td>{student.email}</td>
-                                                        <td>{student.phoneNumber || '-'}</td>
+                                                        <td>{enr.student.email}</td>
+                                                        <td style={{ textAlign: 'center' }}>
+                                                            <span style={{
+                                                                fontWeight: 'bold',
+                                                                fontSize: '1.1rem',
+                                                                color: (enr.absences || 0) > 0 ? '#ef4444' : '#10b981'
+                                                            }}>
+                                                                {enr.absences || 0}
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ textAlign: 'center' }}>
+                                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                                                <button
+                                                                    onClick={() => handleUpdateAbsence(enr.id, -1)}
+                                                                    disabled={(enr.absences || 0) === 0} // Το απενεργοποιούμε αν οι απουσίες είναι ήδη 0
+                                                                    style={{
+                                                                        padding: '6px 10px',
+                                                                        background: '#f1f5f9',
+                                                                        color: '#475569',
+                                                                        border: '1px solid #cbd5e1',
+                                                                        borderRadius: '6px',
+                                                                        fontWeight: '600',
+                                                                        cursor: (enr.absences || 0) === 0 ? 'not-allowed' : 'pointer',
+                                                                        opacity: (enr.absences || 0) === 0 ? 0.5 : 1, // Φαίνεται "σβηστό" αν είναι απενεργοποιημένο
+                                                                        transition: 'all 0.2s'
+                                                                    }}
+                                                                >
+                                                                    -1
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleUpdateAbsence(enr.id, 1)}
+                                                                    style={{
+                                                                        padding: '6px 10px',
+                                                                        background: '#fee2e2',
+                                                                        color: '#ef4444',
+                                                                        border: '1px solid #fca5a5',
+                                                                        borderRadius: '6px',
+                                                                        cursor: 'pointer',
+                                                                        fontWeight: '600',
+                                                                        transition: 'all 0.2s'
+                                                                    }}
+                                                                >
+                                                                    +1
+                                                                </button>
+                                                            </div>
+                                                        </td>
                                                     </tr>
                                                 ))}
                                                 </tbody>

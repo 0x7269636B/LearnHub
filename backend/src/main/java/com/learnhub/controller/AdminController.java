@@ -107,4 +107,20 @@ public class AdminController {
         }
     }
 
+    @PutMapping("/enrollments/{id}/absences")
+    public ResponseEntity<?> updateAbsence(@PathVariable Long id, @RequestParam int hours) {
+        try {
+            return enrollmentRepository.findById(id).map(enr -> {
+                int currentAbsences = (enr.getAbsences() == null) ? 0 : enr.getAbsences();
+                int newAbsences = Math.max(0, currentAbsences + hours);
+                enr.setAbsences(newAbsences);
+
+                com.learnhub.model.Enrollment updatedEnrollment = enrollmentRepository.save(enr);
+                return ResponseEntity.ok(updatedEnrollment);
+            }).orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Σφάλμα κατά την ενημέρωση απουσίας.");
+        }
+    }
+
 }

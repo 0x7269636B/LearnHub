@@ -591,30 +591,59 @@ const ManagementPortal = () => {
                             </form>
                         </div>
 
-                        {/* ΛΙΣΤΑ ΥΠΑΡΧΟΥΣΩΝ ΑΝΑΘΕΣΕΩΝ */}
                         <div className="card-container">
-                            <h3 className="section-title" style={{ marginBottom: '20px' }}>Τρέχουσες Αναθέσεις</h3>
+                            <h3 className="section-title" style={{ marginBottom: '20px' }}>Τρέχουσες Αναθέσεις & Επιδόσεις</h3>
                             <div className="table-container">
                                 <table className="management-table">
                                     <thead>
                                     <tr>
                                         <th>Μαθητής</th>
                                         <th>Μάθημα</th>
-                                        <th>Κατηγορία</th>
+                                        <th style={{ textAlign: 'center' }}>Απουσίες</th>
+                                        <th style={{ textAlign: 'center' }}>Βαθμός</th>
                                         <th>Ημ/νία Εγγραφής</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     {enrollments.map(enr => (
                                         <tr key={enr.id}>
-                                            <td><b>{enr.student.firstName} {enr.student.lastName}</b></td>
-                                            <td><span style={{ fontWeight: '600', color: '#4f46e5' }}>{enr.course.title}</span></td>
-                                            <td>{enr.course.category}</td>
+                                            <td>
+                                                <div className="user-cell">
+                                                    <b>{enr.student.firstName} {enr.student.lastName}</b>
+                                                    <span>ID: #{enr.student.id}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="user-cell">
+                                                    <b style={{ color: '#4f46e5' }}>{enr.course.title}</b>
+                                                    <span>{enr.course.category}</span>
+                                                </div>
+                                            </td>
+
+                                            <td style={{ textAlign: 'center' }}>
+                                    <span style={{
+                                        fontWeight: 'bold',
+                                        fontSize: '1.05rem',
+                                        color: (enr.absences || 0) > 0 ? '#ef4444' : '#10b981'
+                                    }}>
+                                        {enr.absences || 0}
+                                    </span>
+                                            </td>
+                                            <td style={{ textAlign: 'center' }}>
+                                    <span style={{
+                                        fontWeight: 'bold',
+                                        fontSize: '1.05rem',
+                                        color: enr.grade ? '#10b981' : '#94a3b8'
+                                    }}>
+                                        {enr.grade !== null ? enr.grade : '-'}
+                                    </span>
+                                            </td>
+
                                             <td>{enr.enrollmentDate}</td>
                                         </tr>
                                     ))}
                                     {enrollments.length === 0 && (
-                                        <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>Δεν υπάρχουν εγγεγραμμένοι μαθητές.</td></tr>
+                                        <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>Δεν υπάρχουν εγγεγραμμένοι μαθητές.</td></tr>
                                     )}
                                     </tbody>
                                 </table>

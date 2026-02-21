@@ -5,6 +5,7 @@ import com.learnhub.model.Role;
 import com.learnhub.model.User;
 import com.learnhub.repository.CourseRepository;
 import com.learnhub.repository.EnrollmentRepository;
+import com.learnhub.repository.PaymentRepository;
 import com.learnhub.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ public class AdminController {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final PaymentRepository paymentRepository;
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Long>> getDashboardStats() {
@@ -133,6 +135,30 @@ public class AdminController {
             }).orElseGet(() -> ResponseEntity.notFound().build());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Σφάλμα κατά την καταχώρηση βαθμού.");
+        }
+    }
+
+    @GetMapping("/payments")
+    public ResponseEntity<?> getAllPayments() {
+        return ResponseEntity.ok(paymentRepository.findAll());
+    }
+
+    @PostMapping("/payments")
+    public ResponseEntity<?> addPayment(@RequestBody com.learnhub.model.PaymentRequest request) {
+        try {
+            User student = userRepository.findById(request.getStudentId())
+                    .orElseThrow(() -> new RuntimeException("Ο μαθητής δεν βρέθηκε"));
+
+            com.learnhub.model.Payment payment = com.learnhub.model.Payment.builder()
+                    .student(student)
+                    .amount(request.getAmount())
+                    .paymentDate(java.time.LocalDate.now())
+                    .description(request.getDescription())
+                    .build();
+
+            return ResponseEntity.ok(paymentRepository.save(payment));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Σφάλμα κατά την καταχώρηση πληρωμής.");
         }
     }
 

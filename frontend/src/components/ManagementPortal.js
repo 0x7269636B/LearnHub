@@ -14,6 +14,12 @@ const ManagementPortal = () => {
     const [isError, setIsError] = useState(false);
     const [enrollments, setEnrollments] = useState([]);
     const [enrollFormData, setEnrollFormData] = useState({ studentId: '', courseId: '' });
+    const [payments, setPayments] = useState([]);
+    const [paymentFormData, setPaymentFormData] = useState({
+        studentId: '',
+        amount: '',
+        description: ''
+    });
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -48,6 +54,31 @@ const ManagementPortal = () => {
             fetchEnrollments();
         }
     }, [activeTab]);
+
+    useEffect(() => {
+        if (activeTab === 'dashboard') fetchDashboardData();
+        else if (activeTab === 'students') fetchStudents();
+        else if (activeTab === 'teachers') fetchTeachers();
+        else if (activeTab === 'courses') fetchCourses();
+        else if (activeTab === 'enrollments') {
+            fetchStudents();
+            fetchCourses();
+            fetchEnrollments();
+        }
+        else if (activeTab === 'payments') { // ΝΕΟ
+            fetchStudents();
+            fetchPayments();
+        }
+    }, [activeTab]);
+
+    const fetchPayments = async () => {
+        try {
+            const res = await axios.get('http://localhost:8080/api/admin/payments');
+            setPayments(res.data);
+        } catch (err) {
+            console.error("Σφάλμα φόρτωσης πληρωμών", err);
+        }
+    };
 
     const fetchEnrollments = async () => {
         try {
@@ -177,6 +208,23 @@ const ManagementPortal = () => {
         }
     };
 
+    const handleAddPayment = async (e) => {
+        e.preventDefault();
+        setMessage('');
+        setIsError(false);
+
+        try {
+            await axios.post('http://localhost:8080/api/admin/payments', paymentFormData);
+            setMessage('Η πληρωμή καταχωρήθηκε επιτυχώς!');
+            setIsError(false);
+            setPaymentFormData({ studentId: '', amount: '', description: '' }); // Καθαρισμός φόρμας
+            fetchPayments(); // Ανανέωση λίστας
+        } catch (error) {
+            setMessage('Σφάλμα κατά την καταχώρηση της πληρωμής.');
+            setIsError(true);
+        }
+    };
+
     return (
         <div className="management-container">
             <aside className="sidebar">
@@ -206,6 +254,9 @@ const ManagementPortal = () => {
                     </li>
                     <li className={activeTab === 'addUser' ? 'active' : ''} onClick={() => setActiveTab('addUser')}>
                         Νέος Χρήστης
+                    </li>
+                    <li className={activeTab === 'payments' ? 'active' : ''} onClick={() => setActiveTab('payments')}>
+                        Οικονομικά
                     </li>
                 </ul>
 
@@ -644,6 +695,95 @@ const ManagementPortal = () => {
                                     ))}
                                     {enrollments.length === 0 && (
                                         <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>Δεν υπάρχουν εγγεγραμμένοι μαθητές.</td></tr>
+                                    )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'payments' && (
+                    <div className="fade-in">
+                        <div className="content-header" style={{ marginBottom: '24px' }}>
+                            <h3 className="section-title" style={{ margin: 0 }}>Διαχείριση Διδάκτρων & Πληρωμών</h3>
+                        </div>
+
+                        <div className="card-container registration-form" style={{ marginBottom: '40px' }}>
+                            {message && (
+                                <div style={{ padding: '12px 16px', marginBottom: '24px', borderRadius: '8px', fontWeight: '500', backgroundColor: isError ? '#fee2e2' : '#dcfce7', color: isError ? '#ef4444' : '#15803d', border: `1px solid ${isError ? '#fca5a5' : '#86efac'}` }}>
+                                    {message}
+                                </div>
+                            )}
+
+                            <form onSubmit={handleAddPayment}>
+                                <div className="input-row">
+                                    <div className="input-group">
+                                        <label>Επιλογή Μαθητή</label>
+                                        <select
+                                            value={paymentFormData.studentId}
+                                            onChange={(e) => setPaymentFormData({ ...paymentFormData, studentId: e.target.value })}
+                                            required
+                                        >
+                                            <option value="">-- Επίλεξε Μαθητή --</option>
+                                            {students.map(s => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="input-group">
+                                        <label>Ποσό (€)</label>
+                                        <input
+                                            type="number"
+                                            min="1" step="0.01"
+                                            value={paymentFormData.amount}
+                                            onChange={(e) => setPaymentFormData({ ...paymentFormData, amount: e.target.value })}
+                                            placeholder="π.χ. 150"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="input-group">
+                                    <label>Αιτιολογία / Μήνας</label>
+                                    <input
+                                        type="text"
+                                        value={paymentFormData.description}
+                                        onChange={(e) => setPaymentFormData({ ...paymentFormData, description: e.target.value })}
+                                        placeholder="π.χ. Δίδακτρα Οκτωβρίου 2023"
+                                        required
+                                    />
+                                </div>
+
+                                <button type="submit" className="save-btn" style={{ background: '#10b981' }}>
+                                    Καταχώρηση Πληρωμής
+                                </button>
+                            </form>
+                        </div>
+
+                        <div className="card-container">
+                            <h3 className="section-title" style={{ marginBottom: '20px' }}>Ιστορικό Πληρωμών</h3>
+                            <div className="table-container">
+                                <table className="management-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Ημερομηνία</th>
+                                        <th>Μαθητής</th>
+                                        <th>Αιτιολογία</th>
+                                        <th style={{ textAlign: 'right' }}>Ποσό</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {payments.map(payment => (
+                                        <tr key={payment.id}>
+                                            <td><span className="badge" style={{ background: '#f1f5f9', color: '#475569' }}>{payment.paymentDate}</span></td>
+                                            <td><b>{payment.student.firstName} {payment.student.lastName}</b></td>
+                                            <td>{payment.description}</td>
+                                            <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#10b981', fontSize: '1.1rem' }}>
+                                                {payment.amount} €
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {payments.length === 0 && (
+                                        <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>Δεν έχουν καταχωρηθεί πληρωμές.</td></tr>
                                     )}
                                     </tbody>
                                 </table>

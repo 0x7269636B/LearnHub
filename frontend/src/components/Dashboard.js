@@ -17,7 +17,6 @@ const Dashboard = () => {
 
     return (
         <div className="dashboard-container">
-            {/* Sidebar Μαθητή */}
             <aside className="sidebar">
                 <div className="sidebar-header">
                     <div className="logo-icon student-logo">LH</div>
@@ -29,13 +28,13 @@ const Dashboard = () => {
 
                 <ul className="sidebar-menu">
                     <li className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>
-                        🏠 Το Ταμπλό μου
+                        Το Ταμπλό μου
                     </li>
                     <li className={activeTab === 'courses' ? 'active' : ''} onClick={() => setActiveTab('courses')}>
-                        📚 Τα Μαθήματά μου
+                        Τα Μαθήματά μου
                     </li>
                     <li className={activeTab === 'grades' ? 'active' : ''} onClick={() => setActiveTab('grades')}>
-                        📝 Οι Βαθμοί μου
+                        Οι Βαθμοί μου
                     </li>
                 </ul>
 
@@ -46,7 +45,6 @@ const Dashboard = () => {
                 </div>
             </aside>
 
-            {/* Κεντρικό Περιεχόμενο */}
             <main className="content fade-in">
                 <div className="content-header">
                     <h1>Γεια σου, {studentName} 🚀</h1>
@@ -55,7 +53,6 @@ const Dashboard = () => {
 
                 {activeTab === 'dashboard' && (
                     <>
-                        {/* Κάρτες Στατιστικών */}
                         <div className="stats-grid">
                             <div className="stat-card">
                                 <h3>Εγγεγραμμένα Μαθήματα</h3>
@@ -71,7 +68,6 @@ const Dashboard = () => {
                             </div>
                         </div>
 
-                        {/* Πρόγραμμα */}
                         <div className="card-container mt-40">
                             <h3 className="section-title">Το Πρόγραμμά μου (Σήμερα)</h3>
                             <div className="table-container">

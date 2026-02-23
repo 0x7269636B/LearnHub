@@ -3,10 +3,10 @@ package com.learnhub.controller;
 import com.learnhub.model.Course;
 import com.learnhub.model.Role;
 import com.learnhub.model.User;
-import com.learnhub.repository.CourseRepository;
-import com.learnhub.repository.EnrollmentRepository;
 import com.learnhub.repository.PaymentRepository;
 import com.learnhub.repository.UserRepository;
+import com.learnhub.service.CourseService;
+import com.learnhub.service.EnrollmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,16 +22,18 @@ import java.util.Map;
 public class AdminController {
 
     private final UserRepository userRepository;
-    private final CourseRepository courseRepository;
-    private final EnrollmentRepository enrollmentRepository;
     private final PaymentRepository paymentRepository;
+
+    private final CourseService courseService;
+    private final EnrollmentService enrollmentService;
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Long>> getDashboardStats() {
         Map<String, Long> stats = new HashMap<>();
         stats.put("students", userRepository.countByRole(Role.STUDENT));
         stats.put("teachers", userRepository.countByRole(Role.TEACHER));
-        stats.put("courses", courseRepository.count()); // Μετράει όλα τα μαθήματα
+        // Υπολογίζουμε τα μαθήματα μέσω του Service πλέον!
+        stats.put("courses", (long) courseService.getAllCourses().size());
         return ResponseEntity.ok(stats);
     }
 
@@ -52,89 +54,56 @@ public class AdminController {
 
     @GetMapping("/courses")
     public ResponseEntity<?> getAllCourses() {
-        return ResponseEntity.ok(courseRepository.findAll());
+        return ResponseEntity.ok(courseService.getAllCourses());
     }
 
     @PostMapping("/courses")
-    public ResponseEntity<?> addCourse(@RequestBody com.learnhub.model.Course course) {
+    public ResponseEntity<?> addCourse(@RequestBody Course course) {
         try {
-            com.learnhub.model.Course savedCourse = courseRepository.save(course);
-            return ResponseEntity.ok(savedCourse);
+            return ResponseEntity.ok(courseService.addCourse(course));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Σφάλμα κατά την αποθήκευση του μαθήματος.");
         }
     }
 
     @PutMapping("/courses/{id}")
-    public ResponseEntity<?> updateCourse(@PathVariable Long id, @RequestBody com.learnhub.model.Course updatedCourse) {
+    public ResponseEntity<?> updateCourse(@PathVariable Long id, @RequestBody Course updatedCourse) {
         try {
-            // Ψάχνουμε αν υπάρχει το μάθημα με αυτό το ID (προσοχή: ίσως το πεδίο σου λέγεται cid)
-            return courseRepository.findById(id).map(course -> {
-                course.setTitle(updatedCourse.getTitle());
-                course.setDescription(updatedCourse.getDescription());
-                course.setCategory(updatedCourse.getCategory());
-                course.setHoursPerWeek(updatedCourse.getHoursPerWeek());
-
-                // Το αποθηκεύουμε ενημερωμένο
-                com.learnhub.model.Course savedCourse = courseRepository.save(course);
-                return ResponseEntity.ok(savedCourse);
-            }).orElseGet(() -> ResponseEntity.notFound().build());
+            return ResponseEntity.ok(courseService.updateCourse(id, updatedCourse));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Σφάλμα κατά την ενημέρωση του μαθήματος.");
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @GetMapping("/enrollments")
     public ResponseEntity<?> getAllEnrollments() {
-        return ResponseEntity.ok(enrollmentRepository.findAll());
+        return ResponseEntity.ok(enrollmentService.getAllEnrollments());
     }
 
     @PostMapping("/enrollments")
     public ResponseEntity<?> enrollStudent(@RequestBody com.learnhub.model.EnrollmentRequest request) {
         try {
-            User student = userRepository.findById(request.getStudentId())
-                    .orElseThrow(() -> new RuntimeException("Ο μαθητής δεν βρέθηκε"));
-            Course course = courseRepository.findById(request.getCourseId())
-                    .orElseThrow(() -> new RuntimeException("Το μάθημα δεν βρέθηκε"));
-
-            com.learnhub.model.Enrollment enrollment = com.learnhub.model.Enrollment.builder()
-                    .student(student)
-                    .course(course)
-                    .enrollmentDate(java.time.LocalDate.now())
-                    .build();
-
-            return ResponseEntity.ok(enrollmentRepository.save(enrollment));
+            return ResponseEntity.ok(enrollmentService.enrollStudent(request.getStudentId(), request.getCourseId()));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Σφάλμα κατά την ανάθεση του μαθητή.");
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PutMapping("/enrollments/{id}/absences")
     public ResponseEntity<?> updateAbsence(@PathVariable Long id, @RequestParam int hours) {
         try {
-            return enrollmentRepository.findById(id).map(enr -> {
-                int currentAbsences = (enr.getAbsences() == null) ? 0 : enr.getAbsences();
-                int newAbsences = Math.max(0, currentAbsences + hours);
-                enr.setAbsences(newAbsences);
-
-                com.learnhub.model.Enrollment updatedEnrollment = enrollmentRepository.save(enr);
-                return ResponseEntity.ok(updatedEnrollment);
-            }).orElseGet(() -> ResponseEntity.notFound().build());
+            return ResponseEntity.ok(enrollmentService.updateAbsences(id, hours));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Σφάλμα κατά την ενημέρωση απουσίας.");
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PutMapping("/enrollments/{id}/grade")
     public ResponseEntity<?> updateGrade(@PathVariable Long id, @RequestParam Double grade) {
         try {
-            return enrollmentRepository.findById(id).map(enr -> {
-                enr.setGrade(grade);
-                com.learnhub.model.Enrollment updatedEnrollment = enrollmentRepository.save(enr);
-                return ResponseEntity.ok(updatedEnrollment);
-            }).orElseGet(() -> ResponseEntity.notFound().build());
+            return ResponseEntity.ok(enrollmentService.updateGrade(id, grade));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Σφάλμα κατά την καταχώρηση βαθμού.");
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
@@ -161,5 +130,4 @@ public class AdminController {
             return ResponseEntity.badRequest().body("Σφάλμα κατά την καταχώρηση πληρωμής.");
         }
     }
-
 }

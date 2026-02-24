@@ -47,7 +47,7 @@ const Dashboard = () => {
 
             <main className="content fade-in">
                 <div className="content-header">
-                    <h1>Γεια σου, {studentName} 🚀</h1>
+                    <h1>Γεια σου, {studentName}</h1>
                     <p>Παρακολούθησε την πρόοδό σου και το πρόγραμμά σου.</p>
                 </div>
 
